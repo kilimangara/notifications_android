@@ -8,21 +8,30 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.asus.notififcations.adapter.CurrentTaskAdapter;
 import com.example.asus.notififcations.adapter.TabAdapter;
 import com.example.asus.notififcations.dialog.AddingTaskDialog;
 
-import model.ModelTask;
+import com.example.asus.notififcations.fragment.CurrentTaskFragment;
+import com.example.asus.notififcations.fragment.DoneTaskFragment;
+import com.example.asus.notififcations.model.ModelTask;
 
 public class MainActivity extends AppCompatActivity implements AddingTaskDialog.AddingTaskListener {
     FragmentManager fragmentManager;
+    TabAdapter tabAdapter;
+    CurrentTaskFragment currentTaskFragment;
+    DoneTaskFragment doneTaskFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         fragmentManager=getFragmentManager();
+        Log.d(CurrentTaskAdapter.MYLOGS, "Раюотает");
 
         setUI();
     }
@@ -39,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
         tabLayout.addTab(tabLayout.newTab().setText(R.string.done_task));
 
         final ViewPager viewPager= (ViewPager) findViewById(R.id.pager);
-        TabAdapter tabAdapter=new TabAdapter(fragmentManager, 2);
+        tabAdapter=new TabAdapter(fragmentManager, 2);
 
         viewPager.setAdapter(tabAdapter);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
@@ -61,6 +70,10 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
             }
         });
 
+        currentTaskFragment= (CurrentTaskFragment) tabAdapter.getItem(TabAdapter.CURREN_TASK_POSITION);
+        doneTaskFragment= (DoneTaskFragment) tabAdapter.getItem(TabAdapter.DONE_TASK_POSITION);
+
+
         FloatingActionButton fab= (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
 
     @Override
     public void OnTaskAdded(ModelTask newTask) {
-        Toast.makeText(this,"Task added",Toast.LENGTH_LONG).show();
+            currentTaskFragment.addTask(newTask);
     }
 
     @Override

@@ -21,7 +21,7 @@ import com.example.asus.notififcations.Utils;
 
 import java.util.Calendar;
 
-import model.ModelTask;
+import com.example.asus.notififcations.model.ModelTask;
 
 /**
  * Created by Asus on 25.08.2016.
@@ -74,7 +74,6 @@ public class AddingTaskDialog extends DialogFragment {
         final Calendar calendar=Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY)+1);
 
-        assert edDate != null;
         edDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,8 +87,6 @@ public class AddingTaskDialog extends DialogFragment {
                         calendar.set(Calendar.MONTH, monthOfYear);
                         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                         edDate.setText(Utils.getDate(calendar.getTimeInMillis()));
-
-                        super.onDateSet(view, year, monthOfYear, dayOfMonth);
                     }
 
                     @Override
@@ -101,7 +98,6 @@ public class AddingTaskDialog extends DialogFragment {
             }
         });
 
-        assert edTime != null;
         edTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

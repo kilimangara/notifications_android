@@ -13,18 +13,26 @@ import com.example.asus.notififcations.fragment.DoneTaskFragment;
 public class TabAdapter extends FragmentStatePagerAdapter {
     private int numberofTabs;
 
+    public static final int CURREN_TASK_POSITION=0;
+    public static final int DONE_TASK_POSITION=1;
+
+    private CurrentTaskFragment currentTaskFragment;
+    private DoneTaskFragment doneTaskFragment;
+
     public TabAdapter(FragmentManager fm, int numberofTabs) {
         super(fm);
         this.numberofTabs=numberofTabs;
+        currentTaskFragment=new CurrentTaskFragment();
+        doneTaskFragment=new DoneTaskFragment();
     }
 
     @Override
     public Fragment getItem(int position) {
         switch(position){
             case 0:
-                return new CurrentTaskFragment();
+                return currentTaskFragment;
             case 1:
-                return new DoneTaskFragment();
+                return doneTaskFragment;
             default:
                 return null;
 

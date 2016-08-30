@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context=".fragment.CurrentTaskFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvCurrentTasks"
         android:layout_width="match_parent"
