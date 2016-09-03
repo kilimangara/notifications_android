@@ -14,24 +14,29 @@ import android.widget.Toast;
 
 import com.example.asus.notififcations.adapter.CurrentTaskAdapter;
 import com.example.asus.notififcations.adapter.TabAdapter;
+import com.example.asus.notififcations.database.DBHelper;
 import com.example.asus.notififcations.dialog.AddingTaskDialog;
 
 import com.example.asus.notififcations.fragment.CurrentTaskFragment;
 import com.example.asus.notififcations.fragment.DoneTaskFragment;
+import com.example.asus.notififcations.fragment.TaskFragment;
 import com.example.asus.notififcations.model.ModelTask;
 
-public class MainActivity extends AppCompatActivity implements AddingTaskDialog.AddingTaskListener {
+public class MainActivity extends AppCompatActivity implements AddingTaskDialog.AddingTaskListener, CurrentTaskFragment.OnTaskDoneListener, DoneTaskFragment.OnTaskRestoreListener {
     FragmentManager fragmentManager;
     TabAdapter tabAdapter;
-    CurrentTaskFragment currentTaskFragment;
-    DoneTaskFragment doneTaskFragment;
+    TaskFragment currentTaskFragment;
+    TaskFragment doneTaskFragment;
+
+    public DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        dbHelper = new DBHelper(getApplicationContext());
         fragmentManager=getFragmentManager();
-        Log.d(CurrentTaskAdapter.MYLOGS, "Раюотает");
+
 
         setUI();
     }
@@ -89,11 +94,21 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
 
     @Override
     public void OnTaskAdded(ModelTask newTask) {
-            currentTaskFragment.addTask(newTask);
+            currentTaskFragment.addTask(newTask, true);
     }
 
     @Override
     public void OnTaskCancel() {
         Toast.makeText(this,"Task canceled", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onTaskDone(ModelTask task) {
+        doneTaskFragment.addTask(task, false);
+    }
+
+    @Override
+    public void OnTaskRestore(ModelTask task) {
+        currentTaskFragment.addTask(task, false);
     }
 }

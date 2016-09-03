@@ -5,4 +5,19 @@
     <color name="colorAccent">#FF4081</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000 </color>
+
+    <color name="prirority_high">#E57373</color>
+    <color name="prirority_normal">#81C784</color>
+    <color name="prirority_low">#4FC3F7</color>
+
+    <color name="prirority_high_selected">#FFCDD2</color>
+    <color name="prirority_normal_selected">#C8E6C9</color>
+    <color name="prirority_low_selected">#B3E5FC</color>
+
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_200">#EEEEEE</color>
+
+
+
+
 </resources>

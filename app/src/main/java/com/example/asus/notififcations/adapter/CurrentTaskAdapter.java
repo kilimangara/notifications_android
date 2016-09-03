@@ -1,5 +1,10 @@
 package com.example.asus.notififcations.adapter;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.content.res.Resources;
+import android.support.v7.view.menu.MenuView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,32 +20,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.asus.notififcations.Utils;
+import com.example.asus.notififcations.fragment.CurrentTaskFragment;
+import com.example.asus.notififcations.fragment.TaskFragment;
 import com.example.asus.notififcations.model.Item;
 import com.example.asus.notififcations.model.ModelTask;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by Asus on 26.08.2016.
  */
-public class CurrentTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    public static final String MYLOGS="mylogs";
-    List<Item> list=new ArrayList<>();
+public class CurrentTaskAdapter extends TaskAdapter {
     private static final int TYPE_TASK=0;
     private static final int TYPE_SEPARATOR=1;
 
-    public Item getItem(int position){
-        return list.get(position);
+    public CurrentTaskAdapter(CurrentTaskFragment taskFragment) {
+        super(taskFragment);
     }
 
-    public void addItem(Item item){
-        list.add(item);
-        Log.d(MYLOGS, list.toString());
-        notifyItemInserted(getItemCount()-1);
-    }
-    public void addItem(int index, Item item){
-        list.add(index, item);
-        Log.d(MYLOGS, list.toString());
-        notifyItemInserted(index);
-    }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -50,8 +47,8 @@ public class CurrentTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         .inflate(R.layout.model_task, parent, false);
                 TextView title = (TextView) v.findViewById(R.id.tvTaskTitle);
                 TextView date= (TextView) v.findViewById(R.id.tvTaskDate);
-                Log.d(MYLOGS, "Вывел на экран");
-                return new TaskViewHolder(v,title, date);
+                CircleImageView priority = (CircleImageView) v.findViewById(R.id.cvTaskPriority);
+                return new TaskViewHolder(v,title, date, priority);
             default:
                 return null;
         }
@@ -60,31 +57,112 @@ public class CurrentTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        Item item =list.get(position);
+        final Item item =list.get(position);
 
         if(item.isTask()){
             holder.itemView.setEnabled(true);
-            ModelTask task= (ModelTask) item;
-            TaskViewHolder taskViewHolder= (TaskViewHolder) holder;
+            final ModelTask task= (ModelTask) item;
+            final TaskViewHolder taskViewHolder= (TaskViewHolder) holder;
+            final View itemView =taskViewHolder.itemView;
+            final Resources resources =itemView.getResources();
 
             taskViewHolder.title.setText(task.getTitle());
-            Log.d(MYLOGS, "хз че сделал");
             if(task.getDate() !=0){
                 taskViewHolder.date.setText(Utils.getFullDate(task.getDate()));
             }
+            else{
+                taskViewHolder.date.setText(null);
+            }
+            itemView.setVisibility(View.VISIBLE);
+            itemView.setBackgroundColor(resources.getColor(R.color.gray_50));
+            taskViewHolder.title.setTextColor(resources.getColor(R.color.primary_text_default_material_light));
+            taskViewHolder.date.setTextColor(resources.getColor(R.color.secondary_text_default_material_light));
+            taskViewHolder.priority.setColorFilter(resources.getColor(task.getPriorityColor()));
+            taskViewHolder.priority.setImageResource(R.drawable.ic_checkbox_blank_circle_white_48dp);
+
+            taskViewHolder.priority.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    task.setStatus(ModelTask.STATUS_DONE);
+                    getTaskFragment().activity.dbHelper.update().status(task.getTime_stamp(), ModelTask.STATUS_DONE);
+
+                    itemView.setBackgroundColor(resources.getColor(R.color.gray_200));
+
+                    taskViewHolder.title.setTextColor(resources.getColor(R.color.primary_text_disabled_material_light));
+                    taskViewHolder.date.setTextColor(resources.getColor(R.color.secondary_text_disabled_material_light));
+                    taskViewHolder.priority.setColorFilter(resources.getColor(task.getPriorityColor()));
+
+                    ObjectAnimator flipIn= ObjectAnimator.ofFloat(taskViewHolder.priority,"rotationY", -180f, 0f);
+                    flipIn.addListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            if(task.getStatus() == ModelTask.STATUS_DONE){
+                                taskViewHolder.priority.setImageResource(R.drawable.ic_check_circle_white_48dp);
+
+                                ObjectAnimator translationX = ObjectAnimator.ofFloat(itemView, "translationX",
+                                        0f, itemView.getWidth());
+
+                                ObjectAnimator translationBackX = ObjectAnimator.ofFloat(itemView, "translationX",
+                                        itemView.getWidth(), 0f);
+
+                                translationX.addListener(new Animator.AnimatorListener() {
+                                    @Override
+                                    public void onAnimationStart(Animator animation) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        itemView.setVisibility(View.GONE);
+
+                                        getTaskFragment().moveTask(task);
+                                        removeItem(taskViewHolder.getLayoutPosition());
+                                    }
+
+                                    @Override
+                                    public void onAnimationCancel(Animator animation) {
+
+                                    }
+
+                                    @Override
+                                    public void onAnimationRepeat(Animator animation) {
+
+                                    }
+                                });
+
+
+
+
+                                AnimatorSet translationSet = new AnimatorSet();
+                                translationSet.play(translationX).before(translationBackX);
+                                translationSet.start();
+
+                            }
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+
+                        }
+                    });
+                    flipIn.start();
+                }
+            });
 
         }
 
 
     }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
-    }
-
-
-
 
     @Override
     public int getItemViewType(int position) {
@@ -96,16 +174,4 @@ public class CurrentTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
     }
 
-    private class TaskViewHolder extends RecyclerView.ViewHolder{
-        TextView title;
-        TextView date;
-
-        public TaskViewHolder(View itemView, TextView title, TextView date) {
-            super(itemView);
-            this.title=title;
-            this.date=date;
-        }
-
-
-    }
 }

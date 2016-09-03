@@ -1,6 +1,7 @@
 package com.example.asus.notififcations.fragment;
 
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,65 +13,73 @@ import android.view.ViewGroup;
 
 import com.example.asus.notififcations.R;
 import com.example.asus.notififcations.adapter.CurrentTaskAdapter;
+import com.example.asus.notififcations.database.DBHelper;
 import com.example.asus.notififcations.model.ModelTask;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class CurrentTaskFragment extends Fragment {
+public class CurrentTaskFragment extends TaskFragment {
 
-    private RecyclerView rvCurrentTasks;
-    private RecyclerView.LayoutManager layoutManager;
-
-    private CurrentTaskAdapter adapter;
-
+    public interface OnTaskDoneListener{
+        void onTaskDone(ModelTask task);
+    }
+    OnTaskDoneListener onTaskDoneListener;
     public CurrentTaskFragment() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try{
+            onTaskDoneListener = (OnTaskDoneListener) activity;
+        }
+        catch(ClassCastException e){
+            throw new ClassCastException(activity.toString() + " must implement OnTaskDonListener");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView =inflater.inflate(R.layout.fragment_current_task,container, false);
 
-        adapter= new CurrentTaskAdapter();
+        adapter= new CurrentTaskAdapter(this);
 
-        rvCurrentTasks= (RecyclerView) rootView.findViewById(R.id.rvCurrentTasks);
+        recycleView = (RecyclerView) rootView.findViewById(R.id.rvCurrentTasks);
 
         layoutManager= new LinearLayoutManager(getActivity());
 
-        rvCurrentTasks.setLayoutManager(layoutManager);
+        recycleView.setLayoutManager(layoutManager);
 
-        rvCurrentTasks.setAdapter(adapter);
+        recycleView.setAdapter(adapter);
 
 
         return rootView;
     }
 
-    public void addTask(ModelTask newTask){
-        int position= -1;
 
-        for(int i=0;i< adapter.getItemCount();i++) {
-            if (adapter.getItem(i).isTask()) {
-                ModelTask task = (ModelTask) adapter.getItem(i);
-                if (newTask.getDate() < task.getDate()) {
-                    position = i;
-                    break;
-                }
-            }
+    @Override
+    public void addTaskFromDb() {
+        List<ModelTask> tasks = new ArrayList<>();
+
+
+        tasks.addAll(activity.dbHelper.query().getTasks(DBHelper.SELECTION_STATUS + " OR "+
+                DBHelper.SELECTION_STATUS, new String[]{Integer.toString(ModelTask.STATUS_CURRENT),
+                Integer.toString(ModelTask.STATUS_OVEDUE)}, DBHelper.TASK_DATE_COLUMN));
+        for(ModelTask task: tasks){
+            addTask(task, false);
         }
-
-        if (position != -1) {
-            adapter.addItem(position, newTask);
-        }else{
-            adapter.addItem(newTask);
-        }
-
-
-
 
     }
 
+    @Override
+    public void moveTask(ModelTask newTask) {
+        onTaskDoneListener.onTaskDone(newTask);
+    }
 }
