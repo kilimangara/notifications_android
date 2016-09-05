@@ -24,6 +24,7 @@ import com.example.asus.notififcations.Utils;
 
 import java.util.Calendar;
 
+import com.example.asus.notififcations.alarm.AlarmHelper;
 import com.example.asus.notififcations.model.ModelTask;
 
 /**
@@ -149,8 +150,12 @@ public class AddingTaskDialog extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 modelTask.setTitle(edTitle.getText().toString());
+                modelTask.setStatus(ModelTask.STATUS_CURRENT);
                 if(edTime.length()!=0 || edTitle.length()!=0){
                     modelTask.setDate(calendar.getTimeInMillis());
+
+                    AlarmHelper alarmHelper = AlarmHelper.getInstance();
+                    alarmHelper.setAlarm(modelTask);
                 }
                 modelTask.setStatus(ModelTask.STATUS_CURRENT);
                 addingTaskListener.OnTaskAdded(modelTask);

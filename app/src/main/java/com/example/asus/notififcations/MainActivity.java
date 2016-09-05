@@ -7,6 +7,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.asus.notififcations.adapter.CurrentTaskAdapter;
 import com.example.asus.notififcations.adapter.TabAdapter;
+import com.example.asus.notififcations.alarm.AlarmHelper;
 import com.example.asus.notififcations.database.DBHelper;
 import com.example.asus.notififcations.dialog.AddingTaskDialog;
 
@@ -29,11 +31,15 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
     TaskFragment doneTaskFragment;
 
     public DBHelper dbHelper;
+    SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        AlarmHelper.getInstance().init(getApplicationContext());
+
         dbHelper = new DBHelper(getApplicationContext());
         fragmentManager=getFragmentManager();
 
@@ -41,6 +47,17 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
         setUI();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApplication.activityResumed();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApplication.activityPaused();
+    }
 
     private void setUI(){
         Toolbar toolbar= (Toolbar) findViewById(R.id.tollbar);
@@ -77,7 +94,21 @@ public class MainActivity extends AppCompatActivity implements AddingTaskDialog.
 
         currentTaskFragment= (CurrentTaskFragment) tabAdapter.getItem(TabAdapter.CURREN_TASK_POSITION);
         doneTaskFragment= (DoneTaskFragment) tabAdapter.getItem(TabAdapter.DONE_TASK_POSITION);
+        searchView = (SearchView) findViewById(R.id.searchView);
 
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                currentTaskFragment.findTasks(newText);
+                doneTaskFragment.findTasks(newText);
+                return false;
+            }
+        });
 
         FloatingActionButton fab= (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {

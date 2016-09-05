@@ -65,7 +65,20 @@ public class DoneTaskFragment extends TaskFragment {
     }
 
     @Override
+    public void findTasks(String title) {
+        adapter.removeAllItems();
+        List<ModelTask> tasks = new ArrayList<>();
+        tasks.addAll(activity.dbHelper.query().getTasks( DBHelper.SELECTION_LIKE_TITLE +" AND "
+                + DBHelper.SELECTION_STATUS,
+                new String[]{"%"+ title +"%",Integer.toString(ModelTask.STATUS_DONE)}, DBHelper.TASK_DATE_COLUMN));
+        for(ModelTask task: tasks){
+            addTask(task, false);
+        }
+    }
+
+    @Override
     public void addTaskFromDb() {
+        adapter.removeAllItems();
         List<ModelTask> tasks = new ArrayList<>();
         tasks.addAll(activity.dbHelper.query().getTasks(DBHelper.SELECTION_STATUS,
                 new String[]{Integer.toString(ModelTask.STATUS_DONE)}, DBHelper.TASK_DATE_COLUMN));
@@ -76,6 +89,9 @@ public class DoneTaskFragment extends TaskFragment {
 
     @Override
     public void moveTask(ModelTask newTask) {
+        if(newTask.getDate() != 0){
+            alarmHelper.setAlarm(newTask);
+        }
         onTaskRestoreListener.OnTaskRestore(newTask);
     }
 }
